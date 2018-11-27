@@ -1,15 +1,102 @@
 from requests import get
+from requests import exceptions
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
+import cv2 as cv
 import re
 import os
-import errno
+import sys
+
 
 DATASET_BASE_DIR = "./dataset/"
 SPRITE_BASE_DIR = DATASET_BASE_DIR + 'sprites/'
 
+API_KEY = "de35b454146141e5a071c2ad84fc07a4"
+MAX_RESULTS = 250
+GROUP_SIZE = 50
 
+URL = "https://api.cognitive.microsoft.com/bing/v7.0/images/search"
+
+EXCEPTIONS = set([IOError, FileNotFoundError,
+	exceptions.RequestException, exceptions.HTTPError,
+	exceptions.ConnectionError, exceptions.Timeout])
+
+
+
+def query_bing(query):
+    # store the search term in a convenience variable then set the
+    # headers and search parameters
+    headers = {"Ocp-Apim-Subscription-Key": API_KEY}
+    params = {"q": query, "offset": 0, "count": GROUP_SIZE}
+
+    # make the search
+    print("[INFO] searching Bing API for '{}'".format(query))
+    search = get(URL, headers=headers, params=params)
+    search.raise_for_status()
+
+    # grab the results from the search, including the total number of
+    # estimated results returned by the Bing API
+    results = search.json()
+    estNumResults = min(results["totalEstimatedMatches"], MAX_RESULTS)
+    print("[INFO] {} total results for '{}'".format(estNumResults,
+                                                    query))
+
+    # initialize the total number of images downloaded thus far
+    total = 0
+
+    # loop over the estimated number of results in `GROUP_SIZE` groups
+    for offset in range(0, estNumResults, GROUP_SIZE):
+        # update the search parameters using the current offset, then
+        # make the request to fetch the results
+        print("[INFO] making request for group {}-{} of {}...".format(
+            offset, offset + GROUP_SIZE, estNumResults))
+        params["offset"] = offset
+        search = get(URL, headers=headers, params=params)
+        search.raise_for_status()
+        results = search.json()
+        print("[INFO] saving images for group {}-{} of {}...".format(
+            offset, offset + GROUP_SIZE, estNumResults))
+
+        # loop over the results
+        for v in results["value"]:
+            # try to download the image
+            try:
+                # make a request to download the image
+                print("[INFO] fetching: {}".format(v["contentUrl"]))
+                r = get(v["contentUrl"], timeout=30)
+
+                # build the path to the output image
+                ext = v["contentUrl"][v["contentUrl"].rfind("."):]
+                os.makedirs(DATASET_BASE_DIR + query, exist_ok=True)
+                p = "{}{}/{}{}".format(DATASET_BASE_DIR, query,
+                    str(total).zfill(8), ext)
+
+                # write the image to disk
+                with open(p, "wb") as f:
+                    f.write(r.content)
+
+            # catch any errors that would not unable us to download the
+            # image
+            except Exception as e:
+                # check to see if our exception is in our list of
+                # exceptions to check for
+                if type(e) in EXCEPTIONS:
+                    print("[INFO] skipping: {}".format(v["contentUrl"]))
+                    continue
+
+            # try to load the image from disk
+            image = cv.imread(p)
+
+            # if the image is `None` then we could not properly load the
+            # image from disk (so it should be ignored)
+            if image is None:
+                print("[INFO] deleting: {}".format(p))
+                os.remove(p)
+                continue
+
+            # update the counter
+            total += 1
 def simple_get(url):
     """
     Attempts to get the content at `url` by making an HTTP GET request.
@@ -47,30 +134,35 @@ def log_error(e):
     print(e)
 
 
-def get_sprite_image_urls(pokemon):
+def get_sprite_image_urls(pokemon, all=True):
     raw_html = simple_get("https://pokemondb.net/sprites/{}".format(pokemon))
     soup = BeautifulSoup(raw_html, 'html.parser')
     img_tags = soup.find_all('span', class_=re.compile('img-fixed'))
-    exclude = re.compile('.*(red|blue|silver|shiny).*', re.IGNORECASE)
+    image_urls = [tag.attrs['data-src'] for tag in img_tags]
 
-    urls = []
 
-    for tag in img_tags:
-        if exclude.match(tag.attrs['data-alt']) is None:
-            urls.append(tag.attrs['data-src'])
+    if all:
+        exclude = re.compile('.*(red|blue|silver|shiny).*', re.I)
+    else:
+        exclude = re.compile('.*(red|blue|silver|shiny|back).*', re.I)
+
+    urls = [u for u in image_urls if exclude.match(u) is None]
     return urls
 
-def download_sprite_images(pokemon):
+def download_sprite_images(pokemon, all=True, mute=True):
     os.makedirs(SPRITE_BASE_DIR + pokemon, exist_ok=True)
 
-    urls = get_sprite_image_urls(pokemon)
+    urls = get_sprite_image_urls(pokemon, all)
 
     for i in range(len(urls)):
-        print("Downloading image {}/{} for {}\n".format(i, len(urls), pokemon))
+        if not mute:
+            print("Downloading image {}/{} for {}\n".format(i, len(urls), pokemon))
         filename = SPRITE_BASE_DIR + pokemon + '/{}.jpg'.format(i)
         image = get(urls[i], stream=True)
         with open(filename, "wb") as f:
             f.write(image.content)
+
+    print("Sprite images downloaded to /dataset/sprites/{}\n".format(pokemon))
 
 
 def get_card_image_urls(pokemon):
@@ -78,9 +170,14 @@ def get_card_image_urls(pokemon):
 
 if __name__ == "__main__":
 
+    if len(sys.argv) > 2:
+        MAX_RESULTS = sys.argv[2]
 
-    download_sprite_images("pikachu")
+    if len(sys.argv) > 1:
+        pokemon_name = sys.argv[1]
+        download_sprite_images(pokemon_name, all=False, mute=False)
 
-
-
+        query_bing(pokemon_name)
+    else:
+        download_sprite_images("pikachu", mute=False)
 
