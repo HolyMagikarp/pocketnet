@@ -97,6 +97,8 @@ def query_bing(query):
 
             # update the counter
             total += 1
+
+
 def simple_get(url):
     """
     Attempts to get the content at `url` by making an HTTP GET request.
@@ -175,7 +177,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         pokemon_name = sys.argv[1]
-        download_sprite_images(pokemon_name, all=False, mute=False)
+        #download_sprite_images(pokemon_name, all=False, mute=False)
 
         query_bing(pokemon_name)
     else:
