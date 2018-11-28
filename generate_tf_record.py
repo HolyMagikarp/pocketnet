@@ -60,11 +60,28 @@ def create_tf_example(img_path, class_text, class_label):
     
     return tf_example
 
+# you may get warnings like "libpng warning: iCCP: known incorrect sRGB profile"
+# when running this, it doesn't matter
+# if you don't want to see the warnings then install ImageMagick, check the 
+# legacy option as an installed feature, then run the mogrify_script.sh
+
+# opencv doesn't read gif files and I'm too lazy to convert them automatically
+# so if u have gif in your dataset either convert or delete
 def main(_):
+    # directory names under /dataset/
+    # the training images should in be in these directories
+    pokemons = ["pikachu", "charmander", "gastly", "gengar", "haunter", "meowth"]
+    
     os.makedirs("TFRecords", exist_ok=True)
     writer = tf.python_io.TFRecordWriter(FLAGS.out_path)
-    tf_example = create_tf_example("dataset/haunter/00000000.png", "Haunter", 1)
-    writer.write(tf_example.SerializeToString())
+    
+    for i in range(len(pokemons)):
+        pokemon = pokemons[i]
+        dir = "dataset/{}/".format(pokemon)
+        for img_name in os.listdir(dir):
+            # class label is i + 1 because it starts at 1
+            tf_example = create_tf_example(dir + img_name, pokemons[i], i + 1)
+            writer.write(tf_example.SerializeToString())
     writer.close()
 
 
