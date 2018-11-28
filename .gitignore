@@ -5,3 +5,5 @@ dataset/
 .pydevproject
 pokemon.mp4
 frames/
+TFRecords/
+models/
