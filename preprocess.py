@@ -84,4 +84,4 @@ if __name__ == "__main__":
     # plt.imshow(mini)
     # plt.show()
 
-    preprocess('pikachu', 100)
+    preprocess('bulbasaur', 100)
