@@ -3,6 +3,10 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import os
+import json
+
+NAME_ID_MAP = json.load(open('./names.json', 'r'))
+
 
 BASE_DIR = "./dataset/"
 SAVE_BASE_DIR = BASE_DIR + "preprocessed/"
@@ -12,7 +16,7 @@ def downsample(image, size):
 
     levels = int(np.floor(np.log2(image.shape[0] / size)))
 
-    desired_size = size * (2 ** levels)
+    desired_size = int(size * (2 ** levels))
 
     resized = cv.resize(image, (desired_size, desired_size))
 
@@ -37,15 +41,20 @@ def square(image):
     pad2 = diff - pad1
 
     if height > width:
-        padded = cv.copyMakeBorder(image, 0, 0, pad1, pad2, cv.BORDER_REPLICATE)
+        padded = cv.copyMakeBorder(image, 0, 0, pad1, pad2, cv.BORDER_CONSTANT )
     else:
-        padded = cv.copyMakeBorder(image, pad1, pad2, 0, 0, cv.BORDER_REPLICATE)
+        padded = cv.copyMakeBorder(image, pad1, pad2, 0, 0, cv.BORDER_CONSTANT )
 
     return padded
 
 
-def preprocess(directory, size):
-    input_path = BASE_DIR + directory
+def preprocess(directory, size, source):
+    input_path = BASE_DIR + source + '/' + directory
+
+    if not os.path.exists(input_path):
+        print("No directory: {}".format(input_path))
+        return
+
     filenames = os.listdir(input_path)
     os.makedirs(SAVE_BASE_DIR + directory, exist_ok=True)
 
@@ -58,7 +67,9 @@ def preprocess(directory, size):
             continue
 
         image = cv.imread(input_path + '/' + filename)
-        #image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+
+        if image is None:
+            continue
 
         squared = square(image)
         mini = downsample(squared, size)
@@ -68,20 +79,11 @@ def preprocess(directory, size):
         counter += 1
         print("Preprocessed {}/{} from {}\n".format(counter, total, directory))
 
+def create_reflection(image):
+    pass
 
 if __name__ == "__main__":
-    # image = cv.imread("/Users/dannyliu/Documents/repos/pocketnet/dataset/pikachu/00000000.jpg")
-    # image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
-    # plt.imshow(image)
-    # plt.show()
-    #
-    # square = square(image)
-    # plt.imshow(square)
-    # plt.show()
-    #
-    #
-    # mini = downsample(square, 100)
-    # plt.imshow(mini)
-    # plt.show()
 
-    preprocess('bulbasaur', 100)
+
+    for p in NAME_ID_MAP.keys():
+        preprocess(p, 100, "sprites")
