@@ -168,6 +168,9 @@ def download_sprite_images(pokemon, all=True, mute=True):
 def get_card_image_urls(pokemon):
     pass
 
+def create_name_id_mapping(filename):
+    pass
+
 if __name__ == "__main__":
 
     if len(sys.argv) > 2:
