@@ -6,4 +6,5 @@ dataset/
 pokemon.mp4
 frames/
 graphs/
+TFRecords/
 models/
