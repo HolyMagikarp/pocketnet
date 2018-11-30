@@ -8,4 +8,5 @@ frames/
 graphs/
 TFRecords/
 models/
+venv/
 
