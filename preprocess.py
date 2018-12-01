@@ -1,7 +1,5 @@
 import cv2 as cv
 import numpy as np
-import math
-import matplotlib.pyplot as plt
 import os
 import json
 
@@ -85,5 +83,5 @@ def create_reflection(image):
 if __name__ == "__main__":
 
 
-    for p in NAME_ID_MAP.keys():
-        preprocess(p, 100, "sprites")
+    for p in ['pikachu', 'gengar']:#list(NAME_ID_MAP.keys())[:30]:
+        preprocess(p, 100, "bing")

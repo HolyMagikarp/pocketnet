@@ -73,8 +73,8 @@ def query_bing(query, group_size=GROUP_SIZE, max_result=MAX_RESULTS):
                 ext = v["contentUrl"][v["contentUrl"].rfind("."):]
                 if ext == '.gif':
                     continue
-                os.makedirs(DATASET_BASE_DIR + query, exist_ok=True)
-                p = "{}{}/{}{}".format(DATASET_BASE_DIR, query,
+                os.makedirs(BING_BASE_DIR + query, exist_ok=True)
+                p = "{}{}/{}{}".format(BING_BASE_DIR, query,
                     str(total).zfill(8), ext)
 
                 # write the image to disk
@@ -190,8 +190,9 @@ if __name__ == "__main__":
         query_bing(pokemon_name)
     else:
 
-        for name in list(NAME_ID_MAP.keys())[60:]:
+        for name in ["pikachu", "gengar"]:#list(NAME_ID_MAP.keys())[:3]:
             print("Downloading images for {}\n".format(name))
-            query_bing(name, 50, 50)
+            query_bing(name, 50, 200)
+            #download_sprite_images(name, all=False, mute=False)
 
 

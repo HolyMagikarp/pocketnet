@@ -9,4 +9,6 @@ graphs/
 TFRecords/
 models/
 venv/
+saves/
+first_try.h5
 
