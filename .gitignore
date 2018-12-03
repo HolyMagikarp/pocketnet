@@ -8,11 +8,19 @@ frames/
 graphs/
 TFRecords/
 models/
+backup/
 venv/
 saves/
 first_try.h5
+
 classification_summary.png
 clips/
 dataset_frames/
 dataset_xml/
 
+
+all_frames/
+to_be_labelled/
+to_be_labelled_dup/
+generate_tf_record_f.py
+take_1_in_3.py
