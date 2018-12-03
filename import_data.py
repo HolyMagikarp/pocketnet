@@ -185,12 +185,12 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1:
         pokemon_name = sys.argv[1]
-        download_sprite_images(pokemon_name, all=False, mute=False)
+        #download_sprite_images(pokemon_name, all=False, mute=False)
 
-        query_bing(pokemon_name)
+        query_bing(pokemon_name, 50, 200)
     else:
 
-        for name in ["pikachu", "gengar"]:#list(NAME_ID_MAP.keys())[:3]:
+        for name in ["charmander"]:#list(NAME_ID_MAP.keys())[:3]:
             print("Downloading images for {}\n".format(name))
             query_bing(name, 50, 200)
             #download_sprite_images(name, all=False, mute=False)

@@ -11,4 +11,8 @@ models/
 venv/
 saves/
 first_try.h5
+classification_summary.png
+clips/
+dataset_frames/
+dataset_xml/
 

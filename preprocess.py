@@ -83,5 +83,5 @@ def create_reflection(image):
 if __name__ == "__main__":
 
 
-    for p in ['pikachu', 'gengar']:#list(NAME_ID_MAP.keys())[:30]:
+    for p in ['pikachu', 'gengar', 'charmander', 'gastly', 'haunter', 'meowth']:#list(NAME_ID_MAP.keys())[:30]:
         preprocess(p, 100, "bing")
