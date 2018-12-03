@@ -97,7 +97,10 @@ def query_bing(query, group_size=GROUP_SIZE, max_result=MAX_RESULTS):
             # image from disk (so it should be ignored)
             if image is None:
                 print("[INFO] deleting: {}".format(p))
-                os.remove(p)
+                try:
+                    os.remove(p)
+                except Exception as e:
+                    pass
                 continue
 
             # update the counter
@@ -190,9 +193,9 @@ if __name__ == "__main__":
         query_bing(pokemon_name, 50, 200)
     else:
 
-        for name in ["charmander"]:#list(NAME_ID_MAP.keys())[:3]:
+        for name in ['bulbasaur']:#list(NAME_ID_MAP.keys())[:3]:
             print("Downloading images for {}\n".format(name))
-            query_bing(name, 50, 200)
+            query_bing(name, 50, 50)
             #download_sprite_images(name, all=False, mute=False)
 
 

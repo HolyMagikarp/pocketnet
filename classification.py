@@ -93,7 +93,7 @@ def svm_test(classifier, test_features, test_labels):
 def train_nn_classifier(train_features, train_labels):
     num_classes = len(set(train_labels))
 
-    labels = one_hot_labels(train_labels, num_classes)
+    #labels = one_hot_labels(train_labels, num_classes)
     model = tf.keras.models.Sequential([
         tf.keras.layers.Dense(2048, activation=tf.nn.relu),
         tf.keras.layers.Dense(512, activation=tf.nn.relu),
@@ -101,17 +101,15 @@ def train_nn_classifier(train_features, train_labels):
     ])
 
     model.compile(optimizer='Adam',
-                  loss='mean_squared_error',
+                  loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
-    model.fit(train_features, labels, epochs=20, shuffle=True)
+    model.fit(train_features, train_labels, epochs=5, shuffle=True)
 
     return model
 
 def nn_test(model, test_features, test_labels):
     predictions = model.predict(test_features)
-    #labels = one_hot_labels(test_labels)
-    #correct = [i for i in range(len(predictions)) if np.argmax(predictions[i]) == np.argmax(labels[i])]
     correct = [i for i in range(len(predictions)) if np.argmax(predictions[i]) + 1 == test_labels[i]]
 
     print("Accuracy: {}\n".format(len(correct) / len(predictions) * 100))
@@ -211,6 +209,8 @@ def show_results(x, y, filenames, classes):
 
         for r in right[k][:3]:
             image = cv.imread(r[0])
+            if image is None:
+                break
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
             position = row * num_col + col
             plt.axis('off')
@@ -219,8 +219,11 @@ def show_results(x, y, filenames, classes):
 
             col += 1
 
+        col = 4
         for r in wrong[k][:3]:
             image = cv.imread(r[0])
+            if image is None:
+                break
             image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
             position = row * num_col + col
             plt.axis('off')
@@ -238,15 +241,15 @@ def show_results(x, y, filenames, classes):
 
 if __name__ == "__main__":
 
-
-    classes = ['pikachu', 'charmander', 'gastly', 'haunter', 'gengar', 'meowth']
-    #extract_and_save_features(classes, 0.3)
+    classes = list(NAME_ID_MAP.keys())[:10]
+    #classes = ['pikachu', 'charmander', 'gastly', 'haunter', 'gengar', 'meowth']
+    extract_and_save_features(classes, 0.3)
 
     features, labels, test_features, test_labels, filenames = load_data()
 
     #print("Training NN classifier")
-    # nn_model = train_nn_classifier(features, labels)
-    # accuracy = nn_test(nn_model, test_features, test_labels)
+    nn_model = train_nn_classifier(features, labels)
+    accuracy = nn_test(nn_model, test_features, test_labels)
 
     print("Training SVM classifier")
     svm = train_svm_classifier(features, labels)

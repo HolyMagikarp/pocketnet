@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 import os
 import json
+import matplotlib.pyplot as plt
 
 NAME_ID_MAP = json.load(open('./names.json', 'r'))
 
@@ -46,7 +47,7 @@ def square(image):
     return padded
 
 
-def preprocess(directory, size, source):
+def preprocess(directory, size, source, augment):
     input_path = BASE_DIR + source + '/' + directory
 
     if not os.path.exists(input_path):
@@ -71,17 +72,53 @@ def preprocess(directory, size, source):
 
         squared = square(image)
         mini = downsample(squared, size)
+        images = augment_image(mini, augment)
 
-        cv.imwrite(SAVE_BASE_DIR + directory + '/' + filename, mini)
 
-        counter += 1
+        for i in images:
+            name = filename.split('.')
+            name = str(counter) + '.' + name[-1]
+            cv.imwrite(SAVE_BASE_DIR + directory + '/' + name, i)
+
+            counter += 1
         print("Preprocessed {}/{} from {}\n".format(counter, total, directory))
 
-def create_reflection(image):
-    pass
+def create_reflections(image):
+    return cv.flip(image, 1)
 
+def add_noise(image, amount):
+    size = image.shape
+    total = np.prod(size[:-1])
+    coordinates = []
+    for i in range(size[0]):
+        for j in range(size[1]):
+            coordinates.append((i, j))
+
+    choices = np.random.choice(np.arange(total), int(amount * total), False)
+
+    choices = np.array(coordinates)[choices]
+
+    copy = np.zeros(image.shape)
+
+    copy[:, :, :] = image
+    for choice in choices:
+        colour = np.random.choice([0, 255])
+        copy[choice[0], choice[1], :] = colour
+
+    return copy
+
+def augment_image(image, proceed=False):
+    results = []
+    results.append(image)
+    if proceed:
+        reflection = create_reflections(image)
+        results.append(reflection)
+        results.append(add_noise(image, 0.10))
+        results.append(add_noise(reflection, 0.10))
+
+    return results
 if __name__ == "__main__":
 
-
-    for p in ['pikachu', 'gengar', 'charmander', 'gastly', 'haunter', 'meowth']:#list(NAME_ID_MAP.keys())[:30]:
-        preprocess(p, 100, "bing")
+    for p in list(NAME_ID_MAP.keys())[:10]:
+    #for p in ['pikachu', 'gengar', 'charmander', 'gastly', 'haunter', 'meowth']:#list(NAME_ID_MAP.keys())[:30]:
+        preprocess(p, 100, "bing", False)
