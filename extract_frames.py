@@ -1,6 +1,8 @@
 import cv2
 import os
 
+# HAVE the video pokemon.mp4 in the same directory
+
 vidcap = cv2.VideoCapture('pokemon.mp4')
 success,image = vidcap.read()
 count = 0
