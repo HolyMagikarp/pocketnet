@@ -42,7 +42,7 @@ def load_image_into_numpy_array(image):
     (im_width, im_height) = image.size
     return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
       
-TEST_IMAGE_PATH = "frames/"
+TEST_IMAGE_PATH = "../../frames/"
 
 # Size, in inches, of the output images.
 IMAGE_SIZE = (12, 8)
@@ -87,7 +87,7 @@ def run_inference_for_single_image(image, graph):
                 output_dict['detection_masks'] = output_dict['detection_masks'][0]
     return output_dict
 
-os.makedirs("detection_results", exist_ok=True)
+os.makedirs("../../detection_results", exist_ok=True)
 for img_name in os.listdir(TEST_IMAGE_PATH):
     image = Image.open(TEST_IMAGE_PATH + img_name)
     # the array based representation of the image will be used later in order to prepare the
