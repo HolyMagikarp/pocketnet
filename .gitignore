@@ -12,9 +12,14 @@ backup/
 venv/
 saves/
 first_try.h5
-all_frames/
+
+classification_summary.png
+clips/
 dataset_frames/
 dataset_xml/
+
+
+all_frames/
 to_be_labelled/
 to_be_labelled_dup/
 generate_tf_record_f.py
