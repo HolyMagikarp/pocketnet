@@ -16,8 +16,8 @@ import xml.etree.ElementTree
 #    4. Run models/research/setup.py with argument install
 
 flags = tf.app.flags
-flags.DEFINE_string('out_path_train', 'TFRecords/train.record', "Path for output TFRecord")
-flags.DEFINE_string('out_path_test', 'TFRecords/test.record', "Path for output TFRecord")
+flags.DEFINE_string('out_path_train', 'TFRecords/data/train.record', "Path for output training TFRecord")
+flags.DEFINE_string('out_path_test', 'TFRecords/data/test.record', "Path for output test TFRecord")
 FLAGS = flags.FLAGS
 
 def create_tf_example(img_path, xml_path, class_text, class_label):
@@ -89,7 +89,7 @@ def create_tf_example(img_path, xml_path, class_text, class_label):
 def main(_):
     # directory names under /dataset/
     # the training images should in be in these directories
-    pokemons = ["pikachu"] #, "charmander", "gastly", "gengar", "haunter", "meowth"]
+    pokemons = ["pikachu""charmander", "gastly", "gengar", "haunter", "meowth"]
     
     os.makedirs("TFRecords", exist_ok=True)
     train_writer = tf.python_io.TFRecordWriter(FLAGS.out_path_train)

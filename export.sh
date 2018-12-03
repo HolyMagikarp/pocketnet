@@ -1,9 +1,9 @@
 #!/bin/bash
-# RUN FROM tensorflow/models/research/
-# change model.ckpt-### into the checkpoint number you want
+# From tensorflow/models/research/
 INPUT_TYPE=image_tensor
-PIPELINE_CONFIG_PATH=object_detection/required_export_files/model.config
-TRAINED_CKPT_PREFIX=object_detection/required_export_files/model.ckpt-541
+PIPELINE_CONFIG_PATH=../model/model.config
+TRAINED_CKPT_PREFIX=../model/model.ckpt-541
+mkdir -p object_detection/exported_model
 EXPORT_DIR=object_detection/exported_model
 python object_detection/export_inference_graph.py \
     --input_type=${INPUT_TYPE} \
