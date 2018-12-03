@@ -2,6 +2,7 @@
 Since we are using the tensorflow object detection API to train our model, some code needs to be executed within its directories because we call on their scripts, and some of their scripts rely on the caller to be in certain directories when making relative references to other modules.
 ## Pipeline instructions, details in each file:
 1. Clone the [tensorflow models repository](https://github.com/tensorflow/models.git) into the main directory.
+1. Download the [ssd mobilenet](http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v1_coco_2018_01_28.tar.gz) checkpoint model, extract its contents and place under the root directory.
 1. Go to **models/research** and run **setup.py build** followed by **setup.py install**.
 1. In the same directory, run **protoc_script.sh**.
 2. Assuming there is a video file called **pokemon.mp4**, run **extract_frames.py**.
