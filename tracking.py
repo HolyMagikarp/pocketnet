@@ -23,10 +23,10 @@ else:
     # select the other
     box2 = cv2.selectROI(frame, False)
     
-#     tracker1 = cv2.TrackerKCF_create()
-#     tracker2 = cv2.TrackerKCF_create()
-    tracker1 = cv2.TrackerTLD_create()
-    tracker2 = cv2.TrackerTLD_create()
+    tracker1 = cv2.TrackerKCF_create()
+    tracker2 = cv2.TrackerKCF_create()
+#     tracker1 = cv2.TrackerTLD_create()
+#     tracker2 = cv2.TrackerTLD_create()
 #     tracker1 = cv2.TrackerMedianFlow_create()
 #     tracker2 = cv2.TrackerMedianFlow_create()
     
