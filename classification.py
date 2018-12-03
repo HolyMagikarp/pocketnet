@@ -123,18 +123,18 @@ if __name__ == "__main__":
 
     features, labels = [], []
     test_features, test_labels = [], []
-    for p in list(NAME_ID_MAP.keys())[:50]:
-
+    for p in list(NAME_ID_MAP.keys())[:15]:
+        test_size = 10
 
         print("Extracting features for {}\n".format(p))
         f, l = extract_pokemon_features(p, "bing")
 
-        features.append(f[5:, :])
-        labels.append(l[5:])
+        features.append(f[test_size:, :])
+        labels.append(l[test_size:])
 
         #t_f, t_l = extract_pokemon_features(p, "sprites")
-        test_features.append(f[:5, :])
-        test_labels.append(l[:5])
+        test_features.append(f[:test_size, :])
+        test_labels.append(l[:test_size])
 
     features = np.concatenate(features, axis=0)
     labels = np.concatenate(labels, axis=0)
@@ -143,8 +143,8 @@ if __name__ == "__main__":
 
     # print("Training NN classifier")
     #
-    # nn_model = train_nn_classifier(features, labels)
-    # accuracy = nn_test(nn_model, test_features, test_labels)
+    nn_model = train_nn_classifier(features, labels)
+    accuracy = nn_test(nn_model, test_features, test_labels)
 
     print("Training SVM classifier")
 
