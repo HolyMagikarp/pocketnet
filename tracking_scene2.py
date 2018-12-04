@@ -34,6 +34,7 @@ else:
     tracker2.init(frame, box2)
     
     success, frame = video.read()
+    i = 0
     while success:
         success1, box1 = tracker1.update(frame)
         success2, box2 = tracker2.update(frame)
@@ -53,6 +54,10 @@ else:
             cv2.putText(frame, "Tracker 2 did not find a matching object", (50, 400), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), thickness=2)
             
         cv2.imshow("tracking", frame)
-        cv2.waitKey(37)
+        if i == 0 :
+            cv2.waitKey(0)
+            i += 1
+        else:
+            cv2.waitKey(37)
         
         success, frame = video.read()

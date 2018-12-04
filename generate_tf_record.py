@@ -89,7 +89,7 @@ def create_tf_example(img_path, xml_path, class_text, class_label):
 def main(_):
     # directory names under /dataset/
     # the training images should in be in these directories
-    pokemons = ["pikachu""charmander", "gastly", "gengar", "haunter", "meowth"]
+    pokemons = ["pikachu", "charmander", "gastly", "gengar", "haunter", "meowth"]
     
     os.makedirs("TFRecords", exist_ok=True)
     train_writer = tf.python_io.TFRecordWriter(FLAGS.out_path_train)
