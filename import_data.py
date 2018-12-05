@@ -9,24 +9,31 @@ import os
 import sys
 import json
 
+# json file that loads a dictionary mapping pokemon string names to integer ids
 NAME_ID_MAP = json.load(open('./names.json', 'r'))
 
 DATASET_BASE_DIR = "./dataset/"
 BING_BASE_DIR = DATASET_BASE_DIR + "bing/"
 SPRITE_BASE_DIR = DATASET_BASE_DIR + 'sprites/'
 
+# api key for the Bing API
+# each key only lasts for 7 days, so this key may no longer work at the time of execute
+# however you can create a free Azure account and get another key from here:
+# https://azure.microsoft.com/en-us/services/cognitive-services/bing-image-search-api/
 API_KEY = "de35b454146141e5a071c2ad84fc07a4"
 MAX_RESULTS = 200
 GROUP_SIZE = 50
 
+# base url for Bing image api
 URL = "https://api.cognitive.microsoft.com/bing/v7.0/images/search"
 
 EXCEPTIONS = set([IOError, FileNotFoundError,
 	exceptions.RequestException, exceptions.HTTPError,
 	exceptions.ConnectionError, exceptions.Timeout])
 
-
-
+# queries Bing images with the query, and downloads max_results number of images
+# to the directory at BING_BASE_DIR/query
+# script is taken from Adrian Rosebrock and modified
 def query_bing(query, group_size=GROUP_SIZE, max_result=MAX_RESULTS):
     # store the search term in a convenience variable then set the
     # headers and search parameters
@@ -106,7 +113,8 @@ def query_bing(query, group_size=GROUP_SIZE, max_result=MAX_RESULTS):
             # update the counter
             total += 1
 
-
+# NOT USED IN FINAL REPORT
+# a http get request helper
 def simple_get(url):
     """
     Attempts to get the content at `url` by making an HTTP GET request.
@@ -124,7 +132,8 @@ def simple_get(url):
         log_error('Error during requests to {0} : {1}'.format(url, str(e)))
         return None
 
-
+# NOT USED IN FINAL REPORT
+# a helper that checks if the response request is valid
 def is_good_response(resp):
     """
     Returns True if the response seems to be HTML, False otherwise.
@@ -134,7 +143,8 @@ def is_good_response(resp):
             and content_type is not None
             and content_type.find('html') > -1)
 
-
+# NOT USED IN FINAL REPORT
+# helper to log errors
 def log_error(e):
     """
     It is always a good idea to log errors.
@@ -143,13 +153,13 @@ def log_error(e):
     """
     print(e)
 
-
+# NOT USED IN FINAL REPORT
+# a helper to get sprite image urls from pokemondb.net
 def get_sprite_image_urls(pokemon, all=True):
     raw_html = simple_get("https://pokemondb.net/sprites/{}".format(pokemon))
     soup = BeautifulSoup(raw_html, 'html.parser')
     img_tags = soup.find_all('span', class_=re.compile('img-fixed'))
     image_urls = [tag.attrs['data-src'] for tag in img_tags]
-
 
     if all:
         exclude = re.compile('.*(red|blue|silver|shiny).*', re.I)
@@ -159,6 +169,10 @@ def get_sprite_image_urls(pokemon, all=True):
     urls = [u for u in image_urls if exclude.match(u) is None]
     return urls
 
+# NOT USED IN FINAL REPORT
+# a helper i wrote to scrape sprite images from pokemondb.net
+# the sprite images did not give good results as training or test images
+# and there were only around 20 sprites per pokemon
 def download_sprite_images(pokemon, all=True, mute=True):
     os.makedirs(SPRITE_BASE_DIR + pokemon, exist_ok=True)
 
@@ -174,17 +188,10 @@ def download_sprite_images(pokemon, all=True, mute=True):
 
     print("Sprite images downloaded to /dataset/sprites/{}\n".format(pokemon))
 
-
-def get_card_image_urls(pokemon):
-    pass
-
-def create_name_id_mapping(filename):
-    pass
-
+# allows the script to be run from the command line in the form:
+# python import_data.py query
+# and downloads image results for query
 if __name__ == "__main__":
-
-    if len(sys.argv) > 2:
-        MAX_RESULTS = sys.argv[2]
 
     if len(sys.argv) > 1:
         pokemon_name = sys.argv[1]
@@ -193,8 +200,12 @@ if __name__ == "__main__":
         query_bing(pokemon_name, 50, 200)
     else:
 
-        for name in ['bulbasaur']:#list(NAME_ID_MAP.keys())[:3]:
+        # if the script is run without command line arguments, it downloads images for the first 10 pokemon and stores
+        # the images in dataset/bing/pokemon_name
+        # where images for each pokemon is stored in its own folder
+        for name in list(NAME_ID_MAP.keys())[:10]:
             print("Downloading images for {}\n".format(name))
+            # the third argument for this function dictates how many images to download
             query_bing(name, 50, 50)
             #download_sprite_images(name, all=False, mute=False)
 

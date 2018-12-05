@@ -1,12 +1,8 @@
 import cv2 as cv
-import os
 
-
-
-def create_template(image):
-    return cv.Canny(image, 100, 100)
-
-
+# matches the image and the template with template matching
+# uses normalized squared difference as the score and a threshold of < 0.06 difference
+# for a match
 def match_template(image, template):
     gray_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     gray_template = cv.cvtColor(template, cv.COLOR_BGR2GRAY)
@@ -17,6 +13,9 @@ def match_template(image, template):
     else:
         return False
 
+# matches the image and the template with ORB features
+# match between the images is true if the number of matched features divided by the total
+# number of features in the image is greater than ratio
 def match_feature(image, template, ratio):
     orb = cv.ORB_create()
 
@@ -35,6 +34,9 @@ def match_feature(image, template, ratio):
     else:
         return False
 
+# match the gradients of the image and the template using ORB features
+# match between the images is true if the number of matched features divided by the total
+# number of features in the image is greater than ratio
 def match_gradient_feature(image, template, ratio):
     orb = cv.ORB_create()
 
@@ -56,6 +58,10 @@ def match_gradient_feature(image, template, ratio):
     else:
         return False
 
+# iterates over the frames of the video to find clips containing the query image
+# saves the clips to the directory clips/
+# to create the clip, 24 buffer frames are stored for right before the detection and after the detection
+# these frames along with the detected matching frames are written to a video file
 def find_frames(video_path, query_image):
     cap = cv.VideoCapture(video_path)
     fourcc = cv.VideoWriter_fourcc('X', 'V', 'I', 'D')
@@ -65,13 +71,13 @@ def find_frames(video_path, query_image):
 
     count = 0
     is_action = False
-
     clip_num = 0
-    #out = cv.VideoWriter('clips/clip_{}.mkv'.format(clip_num), fourcc, 24, size, True)
 
+    # main loop that goes over the video frames
     while True:
-
         success, image = cap.read()
+
+        # stores pre buffers
         buffer = []
         if len(buffer) < 24:
             buffer.append(image)
@@ -79,14 +85,9 @@ def find_frames(video_path, query_image):
             buffer.pop(0)
             buffer.append(image)
 
-
-        if not success or count > 18000:
+        # breaks the loop when there are no more frames
+        if not success:
             break
-        # if count > 200:
-        #     out.release()
-        #     break
-        # else:
-        #     out.write(image)
 
         if count % 1000 == 0:
             print("At frame {}".format(count))
@@ -94,9 +95,10 @@ def find_frames(video_path, query_image):
         if is_action:
             out.write(image)
 
-
-        matched = match_gradient_feature(image, query_image, 0.7)
+        # a match is only made when both the template and the features agree on a match
+        matched = match_feature(image, template, 0.7) and match_template(image, template)
         if matched and not is_action:
+            # begins writing the video
             print("writing video ", count)
             is_action = True
             post_buffer = 0
@@ -107,29 +109,32 @@ def find_frames(video_path, query_image):
             out.write(image)
 
         elif is_action and not matched and post_buffer < 24:
+            # writes the post buffer frames
             print("writing post buffer")
             out.write(image)
             post_buffer += 1
 
         elif is_action and not matched:
+            # ends the video
             print("stopping video ", count)
             out.release()
             clip_num += 1
             is_action = False
 
-
-
-
-
         count += 1
-
     cap.release()
 
+# searches the video pokemon.mp4 for the frame 17699
+# needs to run the scrip extract_frames.py first
 if __name__ == "__main__":
+
     query = 'frames/frame{}.jpg'.format(17699)
     template = cv.imread(query)
 
     find_frames('pokemon.mp4', template)
+
+    # this section experiements with different template matching scores, such as normalized cross correlation
+    # and normalized squared difference
 
     # start = 17702
     # query = 'frames/frame{}.jpg'.format(17699)
@@ -146,20 +151,15 @@ if __name__ == "__main__":
     #     image_gray = cv.imread(filename, cv.IMREAD_GRAYSCALE)
     #     edge = cv.Canny(image, 100, 100)
     #     print("results for image {}".format(start + i))
+
     #     print("Colour x Colour")
     #     print(cv.matchTemplate(image, template, cv.TM_SQDIFF_NORMED))
-    #
-    #
-    #
     #
     #     print("Gray x Gray")
     #     print(cv.matchTemplate(image_gray, template_gray, cv.TM_SQDIFF_NORMED))
     #
     #     print("Gray x Edge")
     #     print(cv.matchTemplate(image_gray, template_edge, cv.TM_SQDIFF_NORMED))
-    #
-    #
-    #
     #
     #     print("Edge x Gray")
     #     print(cv.matchTemplate(edge, template_gray, cv.TM_SQDIFF_NORMED))

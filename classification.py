@@ -14,6 +14,7 @@ IMAGE_DIR = 'dataset/'
 
 NAME_ID_MAP = json.load(open('./names.json', 'r'))
 
+# loads the model graph called 'classify_image_graph_def.pb' stored in the graphs directory
 def load_graph():
     with gfile.FastGFile(os.path.join(
             MODEL_DIR, 'classify_image_graph_def.pb'), 'rb') as f:
@@ -21,7 +22,8 @@ def load_graph():
         graph_def.ParseFromString(f.read())
         _ = tf.import_graph_def(graph_def, name='')
 
-
+# NOT USED IN FINAL REPORT
+# helper that one hot encodes labels
 def one_hot_labels(labels, classes):
     a = np.array(labels)
     b = np.zeros((len(labels), classes))
@@ -29,6 +31,8 @@ def one_hot_labels(labels, classes):
 
     return b
 
+# helper that extracts features for all images located in
+# /dataset/source/pokemon
 def extract_pokemon_features(pokemon, source):
     data_dir = IMAGE_DIR + source + '/' + pokemon + '/'
     list_images = [data_dir + f for f in os.listdir(data_dir) if re.search('jpg|JPG|png|PNG', f)]
@@ -37,6 +41,9 @@ def extract_pokemon_features(pokemon, source):
 
     return features, list_images
 
+# loads InceptionV3 along with Imagenet weights, and processes all images in list_images
+# the features are taken as the output of the last pooling layer of the network
+# returns a list of features that corresponds to the list_images
 def extract_features(list_images):
 
     nb_features = 2048
@@ -63,10 +70,11 @@ def extract_features(list_images):
 
             features[i,:] = np.squeeze(predictions)
 
-
     print('Progress: 100.00%\n')
     return features
 
+# trains a support vector machine classifier
+# saves the classifier at 'saves/svm_classifier.joblib'
 def train_svm_classifier(train_features, train_labels):
     classifier = svm.SVC(gamma='scale')
     classifier.fit(train_features, train_labels)
@@ -75,6 +83,8 @@ def train_svm_classifier(train_features, train_labels):
 
     return classifier
 
+# classifies the test_image with the svm classifier saved at
+# 'saves/svm_classifier.joblib'
 def svm_classify(test_image):
 
     classifier = load('saves/svm_classifier.joblib')
@@ -83,6 +93,7 @@ def svm_classify(test_image):
 
     return classifier, guess
 
+# computes the accuracy of the classifier
 def svm_test(classifier, test_features, test_labels):
     predictions = classifier.predict(test_features)
     correct = [i for i in range(len(predictions)) if predictions[i] == test_labels[i]]
@@ -90,10 +101,11 @@ def svm_test(classifier, test_features, test_labels):
     print("Accuracy: {}\n".format(len(correct) / len(predictions) * 100))
     return len(correct) / len(predictions) * 100
 
+# trains a feed forward neural network classifier
 def train_nn_classifier(train_features, train_labels):
     num_classes = len(set(train_labels))
 
-    #labels = one_hot_labels(train_labels, num_classes)
+    labels = one_hot_labels(train_labels, num_classes)
     model = tf.keras.models.Sequential([
         tf.keras.layers.Dense(2048, activation=tf.nn.relu),
         tf.keras.layers.Dense(512, activation=tf.nn.relu),
@@ -108,6 +120,7 @@ def train_nn_classifier(train_features, train_labels):
 
     return model
 
+# computes the accuracy of the neural network classifier
 def nn_test(model, test_features, test_labels):
     predictions = model.predict(test_features)
     correct = [i for i in range(len(predictions)) if np.argmax(predictions[i]) + 1 == test_labels[i]]
@@ -115,7 +128,9 @@ def nn_test(model, test_features, test_labels):
     print("Accuracy: {}\n".format(len(correct) / len(predictions) * 100))
     return len(correct) / len(predictions) * 100
 
-
+# saves extracted features and labels into the saves directory
+# this eliminates the need to re-extract the same features
+# when retraining the classifiers
 def save_data(train_x, train_y, test_x, test_y, filenames):
     np.save(
         open('saves/classification_v1_train_features.npy', 'wb'),
@@ -141,6 +156,7 @@ def save_data(train_x, train_y, test_x, test_y, filenames):
         filenames
     )
 
+# loads the saved features and labels from save_data
 def load_data():
     train_x = np.load(open('saves/classification_v1_train_features.npy', 'rb'))
     train_y = np.load(open('saves/classification_v1_train_labels.npy', 'rb'))
@@ -152,6 +168,10 @@ def load_data():
 
     return train_x, train_y, test_x, test_y, filenames
 
+# helper that creates training and test data by using
+# the pretrained neural network to extract features for pokemon in targets
+# and then splits the features by test_ratio into training and test data
+# finally saves the data in the saves/ directory
 def extract_and_save_features(targets, test_ratio):
     features, labels = [], []
     test_features, test_labels = [], []
@@ -181,14 +201,15 @@ def extract_and_save_features(targets, test_ratio):
 
     save_data(train_x, train_y, test_x, test_y, filenames)
 
-
+# creates an image that shows 3 good predictions and 3 bad predictions of the svm classifier
+# the image is called classification_summary and is saved in the base project directory
 def show_results(x, y, filenames, classes):
     classifier = load('saves/svm_classifier.joblib')
 
     wrong = {}
     right = {}
     for i in range(len(y)):
-        prediction = classifier.predict([x[i]])[0]
+        prediction = int(classifier.predict([x[i]])[0])
 
         if classes[prediction] not in wrong.keys():
             wrong[classes[prediction]] = []
@@ -239,21 +260,29 @@ def show_results(x, y, filenames, classes):
 
     return wrong
 
+# runs the full transfer training pipeline
+# needs the preprocessed directory to be populated by subdirectories of preprocessed pokemon images
 if __name__ == "__main__":
 
+    # classes can be set to determine exactly which pokemon to classify
+    # by default it classifies the first 10
     classes = list(NAME_ID_MAP.keys())[:10]
     #classes = ['pikachu', 'charmander', 'gastly', 'haunter', 'gengar', 'meowth']
+
+    # extracts features with InceptionV3
     extract_and_save_features(classes, 0.3)
 
+    # loads extracted data
     features, labels, test_features, test_labels, filenames = load_data()
 
-    #print("Training NN classifier")
+    # trains the neural network classifier
     nn_model = train_nn_classifier(features, labels)
     accuracy = nn_test(nn_model, test_features, test_labels)
 
-    print("Training SVM classifier")
+    # trains the svm classifier
     svm = train_svm_classifier(features, labels)
     accuracy = svm_test(svm, test_features, test_labels)
 
+    # creates a summary of good and bad predictions using the svm classifier
     wrong = show_results(test_features, test_labels, filenames, classes)
     print("END\n")
