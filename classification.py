@@ -262,6 +262,10 @@ def show_results(x, y, filenames, classes):
 
 # runs the full transfer training pipeline
 # needs the preprocessed directory to be populated by subdirectories of preprocessed pokemon images
+# need to clone the tensorflow/models directory into the base project directory
+# found here: https://github.com/tensorflow/models
+# then execute: python /models/tutorial/imagenet/classify_image.py -model_dir graphs
+# this saves the InceptionV3 model and weights in the graphs directory
 if __name__ == "__main__":
 
     # classes can be set to determine exactly which pokemon to classify
