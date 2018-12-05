@@ -1,0 +1,29 @@
+item {
+    name: "pikachu"
+    id: 1
+}
+
+item {
+    name: "charmander"
+    id: 2
+}
+
+item {
+    name: "gastly"
+    id: 3
+}
+
+item {
+    name: "gengar"
+    id: 4
+}
+
+item {
+    name: "haunter"
+    id: 5
+}
+
+item {
+    name: "meowth"
+    id: 6
+}
